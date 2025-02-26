@@ -108,7 +108,7 @@ LOW           = GPIO.LOW
 
 class Button():
     """ Button Class """
-    pin                           = 59
+    pin                           = None
     
     unpressed_value               = None
     pressed_value                 = None
