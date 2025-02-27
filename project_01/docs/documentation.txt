@@ -1,0 +1,4 @@
+2/27/2025
+  Previous Project Hackster: https://www.hackster.io/512003/vocalvision-transcription-classification-on-pocketbeagle-3014c9
+    -github: https://github.com/mandewalkar/ENGI301/blob/main/project_01/code/final_code/transcribe.py
+
