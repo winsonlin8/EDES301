@@ -2,3 +2,6 @@
   Previous Project Hackster: https://www.hackster.io/512003/vocalvision-transcription-classification-on-pocketbeagle-3014c9
     -github: https://github.com/mandewalkar/ENGI301/blob/main/project_01/code/final_code/transcribe.py
 
+- used tkinter for drawing code initally, but i don't think it's computationally efficient enough
+- trying out kivy, which I think might have better hardware support
+
