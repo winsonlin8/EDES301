@@ -52,3 +52,6 @@ config-pin P2_06 gpio
 
 # Servo
 config-pin P1_36 pwm
+
+# Buzzer
+config-pin P2_01 pwm

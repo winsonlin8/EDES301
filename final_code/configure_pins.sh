@@ -1,6 +1,6 @@
 #!/bin/bash
 # --------------------------------------------------------------------------
-# Combination Lock - Run Script
+# SPI Screen - Configure Pins
 # --------------------------------------------------------------------------
 # License:   
 # Copyright 2020 Erik Welsh
@@ -31,24 +31,29 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # --------------------------------------------------------------------------
 # 
-# Run Combination Lock in /var/lib/cloud9/EDES301/python/combo_lock
-# 
+# Configure pins for:
+#   - SPI0 Display (ILI9341)
+#     * SCLK, MISO, MOSI
+#     * CS, RST, D/C (GPIO)
+#   - SPI1 Touchscreen Controller (STMPE610)
+#     * SCLK, MISO, MOSI
+#     * CS (GPIO)
 # --------------------------------------------------------------------------
 
-cd /var/lib/cloud9/EDES301/python/combo_lock
+echo "Configuring SPI0 (Display)..."
+config-pin P1_08 spi_sclk    # SPI0 SCLK
+config-pin P1_10 spi         # SPI0 MISO
+config-pin P1_12 spi         # SPI0 MOSI
 
-./configure_pins.sh
+config-pin P1_02 gpio        # RESET pin
+config-pin P1_04 gpio        # D/C pin
+config-pin P1_06 gpio        # CS pin
 
-dirs=(
-    '/var/lib/cloud9/EDES301/python/ht16k33:'
-    '/var/lib/cloud9/EDES301/python/servo:'
-    '/var/lib/cloud9/EDES301/python/button:'
-    '/var/lib/cloud9/EDES301/python/led:'
-    '/var/lib/cloud9/EDES301/python/potentiometer:'
-    '/var/lib/cloud9/EDES301/python/buzzer'
-)
+echo "Configuring SPI1 (Touchscreen)..."
+config-pin P2_29 spi_sclk    # SPI1 SCLK
+config-pin P2_27 spi         # SPI1 MISO
+config-pin P2_25 spi         # SPI1 MOSI
 
-PYTHONPATH=$(IFS=; echo "${dirs[*]}") python3 combo_lock.py
+config-pin P2_31 gpio        # CS pin for STMPE610
 
-
-
+echo "All SPI pins configured."
