@@ -38,11 +38,12 @@ Use the following hardware components to make a programmable combination lock:
   - Green LED
   - Potentiometer (analog input)
   - Servo
+  - Music
 
 Requirements:
   - Hardware:
     - When locked:   Red LED is on; Green LED is off; Servo is "closed"; Display is unchanged
-    - When unlocked: Red LED is off; Green LED is on; Servo is "open"; Display is "----"
+    - When unlocked: Red LED is off; Green LED is on; Servo is "open"; Display is "----"; Play a song
     - Display shows value of potentiometer (raw value of analog input divided by 8)
     - Button
       - Waiting for a button press should allow the display to update (if necessary) and return any values
@@ -67,6 +68,7 @@ import button        as BUTTON
 import potentiometer as POT
 import servo         as SERVO
 import led           as LED
+import buzzer_music  as MUSIC
 
 # ------------------------------------------------------------------------
 # Constants
@@ -96,12 +98,14 @@ class CombinationLock():
     potentiometer  = None
     servo          = None
     display        = None
+    music          = None
     debug          = None
     
     def __init__(self, reset_time=2.0, button="P2_2", 
                        red_led="P2_6", green_led="P2_4",
                        potentiometer="P1_19", servo="P1_36", 
-                       i2c_bus=1, i2c_address=0x70, debug=False):
+                       i2c_bus=1, i2c_address=0x70, 
+                       buzzer="P2_1", debug=False):
         """ Initialize variables and set up display """
 
         self.reset_time     = reset_time
@@ -111,6 +115,7 @@ class CombinationLock():
         self.potentiometer  = POT.Potentiometer(potentiometer)
         self.servo          = SERVO.Servo(servo, default_position=SERVO_LOCK)
         self.display        = HT16K33.HT16K33(i2c_bus, i2c_address)
+        self.music          = MUSIC.BuzzerMusic(buzzer)
         self.debug          = debug
         
         self._setup()
@@ -166,6 +171,9 @@ class CombinationLock():
 
         # Set display to dash
         self.set_display_dash()
+        
+        # Play song to indicate that the Lock is unlocked
+        self.music.play_song_from_list(1)
         
     # End def
 

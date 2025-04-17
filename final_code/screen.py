@@ -71,34 +71,41 @@ Software Setup:
   - sudo apt-get install ttf-dejavu -y
 
 """
-
 import time
 import busio
 import board
 import digitalio
-import microcontroller
+
 from PIL import Image, ImageDraw, ImageFont
-from adafruit_rgb_display import color565
+
+from   adafruit_rgb_display import color565
 import adafruit_rgb_display.ili9341 as ili9341
-from microcontroller import pin as mpin
 
 # ------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------
-LEFT    = 0
-RIGHT   = 1
-TOP     = 2
-BOTTOM  = 3
-CENTER  = 4
-PADDING = -5
+LEFT               = 0
+RIGHT              = 1
+TOP                = 2
+BOTTOM             = 3
+CENTER             = 4
+
+PADDING            = -5                # May need to adjust based on font
 
 # ------------------------------------------------------------------------
-# Display Class
+# Functions / Classes
 # ------------------------------------------------------------------------
 class SPI_Display():
+    """ Class to manage an SPI display """
+    reset_pin = None
+    dc_pin    = None
+    cs_pin    = None
+    spi_bus   = None
+    display   = None
+    
     def __init__(self, clk_pin=board.SCLK, miso_pin=board.MISO, mosi_pin=board.MOSI,
                        cs_pin=board.P1_6, dc_pin=board.P1_4, reset_pin=board.P1_2,
-                       baudrate=4000000, rotation=270):
+                       baudrate=24000000, rotation=270):
         """ SPI Display Constructor
         
         :param clk_pin   : Value must be a pin from adafruit board library
@@ -111,8 +118,6 @@ class SPI_Display():
         :param rotation  : Rotation of display; default 90 degrees (landscape)
         
         """
-        print("Initializing SPI Display...")
-        print("Using SPI0 with CS, DC, RST on:", cs_pin, dc_pin, reset_pin)
         # Configuration for CS and DC pins:
         self.reset_pin = digitalio.DigitalInOut(reset_pin)
         self.dc_pin    = digitalio.DigitalInOut(dc_pin)
@@ -121,40 +126,70 @@ class SPI_Display():
         # Setup SPI bus using hardware SPI
         self.spi_bus   = busio.SPI(clock=clk_pin, MISO=miso_pin, MOSI=mosi_pin)
 
-        self.reset_pin = digitalio.DigitalInOut(reset_pin)
-        self.reset_pin.direction = digitalio.Direction.OUTPUT
-        self.reset_pin.value = False
-        time.sleep(0.1)
-        self.reset_pin.value = True
-        time.sleep(0.1)
-
         # Create the ILI9341 display:
         self.display   = ili9341.ILI9341(self.spi_bus, cs=self.cs_pin, dc=self.dc_pin,
-                                         rst=self.reset_pin, baudrate=baudrate, rotation=rotation)
+                                         baudrate=baudrate, rotation=rotation)
         
         # Initialize Hardware
         self._setup()
-        print("Display initialized!")
-
+    
+    # End def
+    
+    
     def _setup(self):
+        """Initialize the display itself"""
+        # Clear the display
         self.blank()
+
+    # End def    
+
 
     def blank(self):
-        self.fill((0, 0, 0))
+        """Clear the display a black screen"""
+        self.fill((0,0,0))
+
+    # End def
+
 
     def fill(self, color):
+        """Fill the display with the given color"""
+        if ((color[0] < 0) or (color[0] > 255) or 
+            (color[1] < 0) or (color[1] > 255) or
+            (color[2] < 0) or (color[2] > 255)):
+            raise ValueError("(R,G,B) must be between 0 and 255: ({0}, {1}, {2})".format(color[0], color[1], color[2]))
+
         self.display.fill(color565(color[0], color[1], color[2]))
 
+    # End def
+
+
     def _get_dimensions(self, rotation):
+        """Get display dimensions"""
+        # Check image rotation
         if rotation % 180 == 90:
-            return (self.display.height, self.display.width)
-        return (self.display.width, self.display.height)
+            height = self.display.width  # Swap height/width to rotate it to landscape!
+            width  = self.display.height
+        else:
+            width  = self.display.width
+            height = self.display.height
+        
+        return (width, height)
+
+    # End def
+
 
     def image(self, filename, rotation=90):
+        """Display the image on the screen"""
+        # Fill display with black pixels to clear the image
         self.blank()
+
+        # Create image with file name
         image = Image.open(filename)
+
+        # Get screen dimensions
         width, height = self._get_dimensions(rotation)
 
+        # Scale the image to the smaller screen dimension
         image_ratio  = image.width / image.height
         screen_ratio = width / height
         if screen_ratio < image_ratio:
@@ -163,60 +198,145 @@ class SPI_Display():
         else:
             scaled_width  = width
             scaled_height = image.height * width // image.width
-
+        
         image = image.resize((scaled_width, scaled_height), Image.BICUBIC)
+
+        # Crop and center the image
         x = scaled_width  // 2 - width  // 2
         y = scaled_height // 2 - height // 2
         image = image.crop((x, y, x + width, y + height))
+
+        # Display image
         self.display.image(image)
-
+        
+    # End def
+    
     def text_fit(self, value, width):
-        return [value[i:i + width] for i in range(0, len(value), width)]
+        toRet = []
+        while(len(value) > width):
+            toRet.append(value[0:width])
+            value = value[width:]
+        toRet.append(value)
+        return toRet
 
-    def text(self, value, fontsize=24, fontcolor=(255, 255, 255),
-                   backgroundcolor=(0, 0, 0), justify=LEFT, align=TOP,
+
+    def text(self, value, fontsize=24, fontcolor=(255,255,255), 
+                   backgroundcolor=(0,0,0), justify=LEFT, align=TOP, 
                    rotation=90):
+        """ Update the display with text
+        
+        :param value           : Value can be a string or list of string
+        :param fontsize        : Size of font
+        :param fontcolor       : (R, G, B) tuple for the color of the text
+        :param backgroundcolor : (R, G, B) tuple for the color of the background
+        :param justify         : Value in [LEFT, CENTER, RIGHT]
+        :param align           : Value in [TOP, CENTER, BOTTOM]
+        :param rotation        : Orientation of the display
+        
+        Will throw a ValueError 
+        """
+        # Debug variable
+        debug = False
+        
+        # Check inputs:
         if justify not in [LEFT, CENTER, RIGHT]:
-            raise ValueError("Invalid justify option")
+            raise ValueError("Input justify must be in [LEFT, CENTER, RIGHT]")
         if align not in [TOP, CENTER, BOTTOM]:
-            raise ValueError("Invalid align option")
+            raise ValueError("Input align must be in [TOP, CENTER, BOTTOM]")
 
-        if not isinstance(value, list):
+        # Determine if text value is string or list
+        #   - Rest of function assumes value is a list of strings
+        if (type(value) is not list):
             value = [value]
 
+        # Clear screen
         self.fill(backgroundcolor)
+        
+        # Get display dimensions
         width, height = self._get_dimensions(rotation)
+
+        # Create a canvas for drawing
         canvas = Image.new("RGB", (width, height))
-        draw = ImageDraw.Draw(canvas)
+
+        # Get drawing object to draw on canvas
+        draw   = ImageDraw.Draw(canvas)
+
+        # Load a TTF Font
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", fontsize)
+
+        # Get height of a character
         font_height = font.getsize(" ")[1]
+
+        if (debug):
+            print("Canvas h = {0}".format(height))
+            print("Font   h = {0}".format(font_height))
+
+        # Calculate number of lines supported on screen w/ font choice        
         num_line = height // font_height
+        
+        if (debug):
+            print("Num Lines      = {0}".format(num_line))
 
-        if len(value) > num_line:
-            value = value[:num_line]
+        # Issue warning if too many lines        
+        if (len(value) > num_line):
+            print("WARNING:  Too many lines for font size.  Truncating.")
+            print("    Required lines : {0}".format(len(value)))
+            print("    Available lines: {0}".format(num_line))
+            # Truncate list
+            del value[num_line:]
+            
+        # Create list of positions for each line
+        text_height = len(value) * font_height   # Number of lines * font height
 
-        text_height = len(value) * font_height
-        y = {
-            TOP: 0,
-            CENTER: (height - text_height) // 2,
-            BOTTOM: height - text_height
-        }.get(align, align) + PADDING
-
-        for line in value:
+        # Get initial y position
+        if align == TOP:
+            y = 0
+        elif align == BOTTOM:
+            y = height - text_height
+        elif align == CENTER:
+            y = (height // 2) - (text_height // 2)
+        else:
+            y = align
+        
+        # Adjust y position by padding
+        y = y + PADDING
+        
+        # Only print lines there is space for
+        for i, line in enumerate(value):
+            # Get width of line
             line_width = font.getsize(line)[0]
-            if line_width > width:
-                for i in range(len(line), 0, -1):
-                    if font.getsize(line[:i])[0] <= width:
-                        line = line[:i]
+            
+            # Issue warning if too many characters
+            if (line_width > width):
+                print("WARNING:  Too many characters for the line.  Truncating.")
+                print("    Required width : {0}".format(line_width))
+                print("    Available width: {0}".format(width))
+                # Truncate line
+                for i in range(len(line)):
+                    line_width = font.getsize(line[:-(i+1)])[0]
+                    if (line_width <= width):
+                        line = line[:-(i+1)]
                         break
 
-            x = {
-                LEFT: 0,
-                CENTER: (width - line_width) // 2,
-                RIGHT: width - line_width
-            }.get(justify, 0)
+            # Get x position
+            if justify == LEFT:
+                x = 0
+            if justify == RIGHT:
+                x = width - line_width
+            if align == CENTER:
+                x = (width // 2) - (line_width // 2) 
 
+            # Draw the text
             draw.text((x, y), line, font=font, fill=fontcolor)
             y += font_height
-
+        
+        # Display image
         self.display.image(canvas)
+
+    # End def
+    
+# End class
+
+    
+
+   
