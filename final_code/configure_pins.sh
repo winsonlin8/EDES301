@@ -54,6 +54,6 @@ config-pin P2_29 spi_sclk    # SPI1 SCLK
 config-pin P2_27 spi         # SPI1 MISO
 config-pin P2_25 spi         # SPI1 MOSI
 
-config-pin P2_31 gpio        # CS pin for STMPE610
+config-pin P2_31 gpio        # CS pin
 
 echo "All SPI pins configured."
