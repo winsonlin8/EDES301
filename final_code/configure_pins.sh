@@ -47,13 +47,13 @@ config-pin P1_12 spi         # SPI0 MOSI
 
 config-pin P1_02 gpio        # RESET pin
 config-pin P1_04 gpio        # D/C pin
-config-pin P1_06 gpio        # CS pin
+config-pin P1_06 spi_cs      # CS pin
 
 echo "Configuring SPI1 (Touchscreen)..."
 config-pin P2_29 spi_sclk    # SPI1 SCLK
 config-pin P2_27 spi         # SPI1 MISO
 config-pin P2_25 spi         # SPI1 MOSI
 
-config-pin P2_31 gpio        # CS pin
+config-pin P2_31 spi_cs        # CS pin
 
 echo "All SPI pins configured."

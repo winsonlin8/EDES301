@@ -105,7 +105,7 @@ class SPI_Display():
     
     def __init__(self, clk_pin=board.SCLK, miso_pin=board.MISO, mosi_pin=board.MOSI,
                        cs_pin=board.P1_6, dc_pin=board.P1_4, reset_pin=board.P1_2,
-                       baudrate=24000000, rotation=270):
+                       baudrate=24000000, rotation=90):
         """ SPI Display Constructor
         
         :param clk_pin   : Value must be a pin from adafruit board library
@@ -211,14 +211,6 @@ class SPI_Display():
         
     # End def
     
-    def text_fit(self, value, width):
-        toRet = []
-        while(len(value) > width):
-            toRet.append(value[0:width])
-            value = value[width:]
-        toRet.append(value)
-        return toRet
-
 
     def text(self, value, fontsize=24, fontcolor=(255,255,255), 
                    backgroundcolor=(0,0,0), justify=LEFT, align=TOP, 
@@ -291,12 +283,10 @@ class SPI_Display():
         # Get initial y position
         if align == TOP:
             y = 0
-        elif align == BOTTOM:
+        if align == BOTTOM:
             y = height - text_height
-        elif align == CENTER:
-            y = (height // 2) - (text_height // 2)
-        else:
-            y = align
+        if align == CENTER:
+            y = (height // 2) - (text_height // 2) 
         
         # Adjust y position by padding
         y = y + PADDING
@@ -337,6 +327,54 @@ class SPI_Display():
     
 # End class
 
-    
 
-   
+# ------------------------------------------------------------------------
+# Main script
+# ------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    import time
+
+    delay = 2
+    
+    print("Test SPI Display:")
+    
+    print("Create Display")
+    display = SPI_Display()
+    time.sleep(delay)
+
+    # Test Functions
+    print("Fill Red")
+    display.fill((255, 0, 0))   
+    time.sleep(delay)
+
+    print("Fill Green")
+    display.fill((0, 255, 0))   
+    time.sleep(delay)
+    
+    print("Fill Blue")
+    display.fill((0, 0, 255))   
+    time.sleep(delay)
+    
+    print("Display blinka.jpg")
+    display.image("blinka.jpg")
+    time.sleep(delay)
+
+    print("Display Text")
+    display.text("This is some text!!")
+    time.sleep(delay)
+    
+    print("Display Multi-line Text")
+    display.text(["This is some text", "on multiple lines!!"])
+    time.sleep(delay)
+    
+    print("Display Multi-line Text, centered")
+    display.text(["This is some text", "on multiple lines!!"], justify=CENTER, align=CENTER)
+    time.sleep(delay)
+    
+    print("Display Multi-line Text, right justify, align bottom, fontsize 30")
+    display.text(["This is some text", "on multiple lines!!", "asdf", "asdf", "asdf", "abcdefghijklmnopqrstuvwxyz"], 
+                 fontsize=30, justify=RIGHT, align=BOTTOM)
+    time.sleep(delay)
+    
+    print("Test Finished.")
