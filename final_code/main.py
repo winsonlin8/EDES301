@@ -1,5 +1,5 @@
 import time
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 from screen import SPI_Display
 from touch import STMPE610Touch
 
@@ -22,7 +22,6 @@ CLEAR_BUTTON_BOX = (BUTTON_MARGIN, DISPLAY_HEIGHT - BUTTON_HEIGHT - BUTTON_MARGI
 GUESS_BUTTON_BOX = (DISPLAY_WIDTH - 100, DISPLAY_HEIGHT - BUTTON_HEIGHT - BUTTON_MARGIN,
                     DISPLAY_WIDTH - BUTTON_MARGIN, DISPLAY_HEIGHT - BUTTON_MARGIN)
 
-
 def map_value(value, in_min, in_max, out_min, out_max):
     value = max(min(value, in_max), in_min)
     return int((value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
@@ -33,8 +32,56 @@ def draw_buttons(draw):
     draw.text((CLEAR_BUTTON_BOX[0] + 10, CLEAR_BUTTON_BOX[1] + 10), "Clear", fill=(0, 0, 0))
     draw.text((GUESS_BUTTON_BOX[0] + 10, GUESS_BUTTON_BOX[1] + 10), "Guess", fill=(0, 0, 0))
 
-def point_in_box(x, y, box):
-    return box[0] <= x <= box[2] and box[1] <= y <= box[3]
+def point_in_box(x, y, box, padding=20):
+    return (box[0] - padding <= x <= box[2] + padding and
+            box[1] - padding <= y <= box[3] + padding)
+
+def guess_shape(canvas):
+    gray = canvas.convert("L")
+    pixels = gray.load()
+    width, height = gray.size
+    threshold = 100
+
+    points = [(x, y) for y in range(height) for x in range(width) if pixels[x, y] < threshold]
+
+    if not points:
+        return "None", 0.0, 0.0
+
+    xs, ys = zip(*points)
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
+    center_x = (min_x + max_x) // 2
+    center_y = (min_y + max_y) // 2
+
+    # Count points in 4 quadrants around center
+    q1 = q2 = q3 = q4 = 0
+    for x, y in points:
+        if x < center_x and y < center_y:
+            q1 += 1
+        elif x >= center_x and y < center_y:
+            q2 += 1
+        elif x < center_x and y >= center_y:
+            q3 += 1
+        else:
+            q4 += 1
+
+    total = q1 + q2 + q3 + q4
+    if total == 0:
+        return "None", 0.0, 0.0
+
+    # Symmetry scores
+    horizontal_symmetry = abs((q1 + q2) - (q3 + q4)) / total
+    vertical_symmetry = abs((q1 + q3) - (q2 + q4)) / total
+
+    print(f"Quadrants: Q1:{q1} Q2:{q2} Q3:{q3} Q4:{q4}")
+    print(f"H-Symmetry: {horizontal_symmetry:.2f}, V-Symmetry: {vertical_symmetry:.2f}")
+
+    # Heuristic: low symmetry difference → circle
+    if horizontal_symmetry < 0.3 and vertical_symmetry < 0.3:
+        return "Circle", horizontal_symmetry, vertical_symmetry
+    else:
+        return "Triangle", horizontal_symmetry, vertical_symmetry
+
 
 def main():
     print("Initializing display...")
@@ -53,9 +100,9 @@ def main():
 
     print("Running main loop... Tap to draw.")
     clear_canvas()
-    
+
     last_update = time.time()
-    
+
     try:
         while True:
             point = touch.get_touch()
@@ -73,14 +120,20 @@ def main():
                     print("Clear button pressed.")
                     clear_canvas()
                 elif point_in_box(x_disp, y_disp, GUESS_BUTTON_BOX):
-                    print("Guess button pressed. (TODO)")
+                    print("Guess button pressed.")
+                    prediction, circ, sym = guess_shape(canvas)
+                    print(f"Prediction: {prediction}")
+                    draw.rectangle((120, 5, DISPLAY_WIDTH - 120, 30), fill=BACKGROUND_COLOR)
+                    prediction, h_sym, v_sym = guess_shape(canvas)
+                    draw.text((130, 10), f"{prediction}, fill=(0, 0, 0))
+                    display.display.image(canvas)
                 else:
                     for dx in range(-1, 2):
                         for dy in range(-1, 2):
                             if 0 <= x_disp + dx < DISPLAY_WIDTH and 0 <= y_disp + dy < DISPLAY_HEIGHT:
                                 canvas.putpixel((x_disp + dx, y_disp + dy), DRAW_COLOR)
                     now = time.time()
-                    if now - last_update > 0.05:  # try 0.05 or even 0.08
+                    if now - last_update > 0.05:
                         display.display.image(canvas)
                         last_update = now
 
