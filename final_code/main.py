@@ -22,6 +22,7 @@ CLEAR_BUTTON_BOX = (BUTTON_MARGIN, DISPLAY_HEIGHT - BUTTON_HEIGHT - BUTTON_MARGI
 GUESS_BUTTON_BOX = (DISPLAY_WIDTH - 100, DISPLAY_HEIGHT - BUTTON_HEIGHT - BUTTON_MARGIN,
                     DISPLAY_WIDTH - BUTTON_MARGIN, DISPLAY_HEIGHT - BUTTON_MARGIN)
 
+
 def map_value(value, in_min, in_max, out_min, out_max):
     value = max(min(value, in_max), in_min)
     return int((value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
@@ -52,7 +53,9 @@ def main():
 
     print("Running main loop... Tap to draw.")
     clear_canvas()
-
+    
+    last_update = time.time()
+    
     try:
         while True:
             point = touch.get_touch()
@@ -72,14 +75,16 @@ def main():
                 elif point_in_box(x_disp, y_disp, GUESS_BUTTON_BOX):
                     print("Guess button pressed. (TODO)")
                 else:
-                    draw.ellipse(
-                        (x_disp - ELLIPSE_RADIUS, y_disp - ELLIPSE_RADIUS,
-                         x_disp + ELLIPSE_RADIUS, y_disp + ELLIPSE_RADIUS),
-                        fill=DRAW_COLOR
-                    )
-                    display.display.image(canvas)
+                    for dx in range(-1, 2):
+                        for dy in range(-1, 2):
+                            if 0 <= x_disp + dx < DISPLAY_WIDTH and 0 <= y_disp + dy < DISPLAY_HEIGHT:
+                                canvas.putpixel((x_disp + dx, y_disp + dy), DRAW_COLOR)
+                    now = time.time()
+                    if now - last_update > 0.05:  # try 0.05 or even 0.08
+                        display.display.image(canvas)
+                        last_update = now
 
-            time.sleep(0.05)
+            time.sleep(0.005)
 
     except KeyboardInterrupt:
         print("\nKeyboard interrupt received. Turning off display.")
