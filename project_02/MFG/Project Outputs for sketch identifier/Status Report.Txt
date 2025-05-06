@@ -1,0 +1,23 @@
+Output: Gerber Files
+Type  : Gerber
+From  : Variant [[No Variations]] of Project [sketch identifier.PrjPcb]
+   Generated File[sketch identifier_Legend_Top.gbr]
+   Generated File[sketch identifier_Paste_Top.gbr]
+   Generated File[sketch identifier_Soldermask_Top.gbr]
+   Generated File[sketch identifier_Copper_Signal_Top.gbr]
+   Generated File[sketch identifier_Copper_Signal_Bot.gbr]
+   Generated File[sketch identifier_Soldermask_Bot.gbr]
+   Generated File[sketch identifier_Paste_Bot.gbr]
+   Generated File[sketch identifier_Legend_Bot.gbr]
+   Generated File[sketch identifier_Mechanical_1.gbr]
+   Generated File[sketch identifier_Drawing_1.gbr]
+   Generated File[sketch identifier_Drillmap_1.gbr]
+   Generated File[sketch identifier_Profile.gbr]
+   Generated File[sketch identifier.EXTREP]
+   Generated File[sketch identifier.REP]
+
+
+Files Generated   : 14
+Documents Printed : 0
+
+Finished Output Generation At 14:03:18 On 5/6/2025
