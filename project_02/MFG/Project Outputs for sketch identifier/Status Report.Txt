@@ -1,0 +1,11 @@
+Output: Generates pick and place files
+Type  : Pick Place
+From  : Variant [[No Variations]] of Project [sketch identifier.PrjPcb]
+   Generated File[Pick Place for sketch identifier.txt]
+   Generated File[Pick Place for sketch identifier.csv]
+
+
+Files Generated   : 2
+Documents Printed : 0
+
+Finished Output Generation At 14:27:23 On 5/6/2025

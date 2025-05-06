@@ -1,0 +1,18 @@
+----------------------------------------------------------------------------------------------------------------------------------
+NCDrill File Report For: sketch identifier.PcbDoc   5/6/2025  14:24:46
+----------------------------------------------------------------------------------------------------------------------------------
+
+Layer Pair : Top Layer to Bottom Layer
+ASCII RoundHoles File : sketch identifier.TXT
+EIA File   : sketch identifier.DRL
+
+Tool       Hole Size               Hole Tolerance               Hole Type       Hole Count   Plated         Tool Travel
+----------------------------------------------------------------------------------------------------------------------------------
+T1      12mil (0.3mm)                                             Round             5         PTH        1.76inch (44.61mm)
+T2      35mil (0.889mm)                                           Round             72        PTH        9.70inch (246.38mm)
+T3      40mil (1.02mm)                                            Round             40        PTH        8.50inch (215.90mm)
+T4      100mil (2.54mm)                                           Round             4         PTH        5.99inch (152.15mm)
+----------------------------------------------------------------------------------------------------------------------------------
+Totals                                                                              121
+
+Total Processing Time (hh:mm:ss) : 00:00:00

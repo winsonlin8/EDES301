@@ -1,0 +1,16 @@
+Altium Designer Pick and Place Locations
+C:\Users\Public\Documents\Altium\sketch identifier\Project Outputs for sketch identifier\Pick Place for sketch identifier.txt
+
+========================================================================================================================
+File Design Information:
+
+Date:       06/05/25
+Time:       14:27
+Revision:   b31d7fb9cf512b9311907f4edac15441a9ded4ed
+Variant:    No variations
+Units used: mil
+
+Designator Comment      Layer    Footprint     "Footprint Description" Center-X(mil) Center-Y(mil) Rotation Description                                                                                                            Ref-X(mil) Ref-Y(mil) Pad-X(mil) Pad-Y(mil) MP           Value 
+U3         STMPE610     TopLayer QFN16_3MM     ""                      2500.000      2750.000      90       "STMPE610 - 12-Bit Touch Screen Controller"                                                                            2500.000   2750.000   2500.000   2750.000   ""           ""    
+U2         ILI9341      TopLayer ADAFRUIT_2478 ""                      1200.000      1500.000      90       "Resistive Graphic LCD Display Module Red, Green, Blue (RGB) TFT - Color Parallel, 8-Bit, SPI 2.4 (60.96mm) 240 x 320" 1200.000   1500.000   250.000    550.000    2478         ""    
+U1         POCKETBEAGLE TopLayer POCKETBEAGLE  ""                      3150.000      1350.000      270      "OSD3358 PocketBeagle - ARM® Cortex®-A8 MPU Embedded Evaluation Board"                                               2461.024   2432.677   2600.000   2200.000   POCKETBEAGLE ""    
